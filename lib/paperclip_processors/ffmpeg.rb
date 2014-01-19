@@ -21,7 +21,7 @@ module Paperclip
           @convert_options[:output].reverse_merge! options[:convert_options][:output]
         end
       end
-      
+
       @geometry        = options[:geometry]
       @file            = file
       @keep_aspect     = !@geometry.nil? && @geometry[-1,1] != '!'
@@ -47,7 +47,7 @@ module Paperclip
       dst = Tempfile.new([@basename, @format ? ".#{@format}" : ''])
       Ffmpeg.log("Destination File Built") if @whiny
       dst.binmode
-      
+
       parameters = []
 
       Ffmpeg.log("Adding Geometry") if @whiny
@@ -136,6 +136,9 @@ module Paperclip
         end
       end
 
+      Ffmpeg.log("Horribly forcing framerate") if @whiny
+      @convert_options[:output][:r] = "29.94"
+
       Ffmpeg.log("Adding Format") if @whiny
       # Add format
       case @format
@@ -176,7 +179,7 @@ module Paperclip
 
       dst
     end
-    
+
     def identify
       meta = {}
       command = "ffprobe \"#{File.expand_path(@file.path)}\" 2>&1"
@@ -198,8 +201,8 @@ module Paperclip
         if line =~ /Duration:(\s.?(\d*):(\d*):(\d*\.\d*))/
           meta[:length] = $2.to_s + ":" + $3.to_s + ":" + $4.to_s
         end
-        if line =~ /rotate\s*:\s(\d*)/ 
-          meta[:rotate] = $1.to_i 
+        if line =~ /rotate\s*:\s(\d*)/
+          meta[:rotate] = $1.to_i
         end
       end
       Paperclip.log("[ffmpeg] Command Success") if @whiny
@@ -211,7 +214,7 @@ module Paperclip
       Paperclip.log "[ffmpeg] #{message}"
     end
   end
-  
+
   class Attachment
     def meta
       instance_read(:meta)
